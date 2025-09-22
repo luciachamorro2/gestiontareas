@@ -1,9 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from datetime import date
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine, Base
 from models import Rol, Usuario, Estado, Tarea
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+
+class UsuarioCreate(BaseModel):
+    nombre: str
+    email: str
+    rol: str
 
 app = FastAPI(title="Gestor de Tareas")
 
@@ -118,3 +125,25 @@ def get_tasks():
                 "creador": t.creador.nombre if t.creador else None
             })
         return result
+
+@app.post("/users")
+def create_user(usuario: UsuarioCreate):
+    with SessionLocal() as session:
+        rol = session.query(Rol).filter_by(nombre=usuario.rol).first()
+        if not rol:
+            raise HTTPException(status_code=400, detail="Rol no válido")
+        
+        nuevo_usuario = Usuario(
+            nombre=usuario.nombre,
+            email=usuario.email,
+            rol=rol
+        )
+        session.add(nuevo_usuario)
+        session.commit()
+        session.refresh(nuevo_usuario)
+        return {
+            "id": nuevo_usuario.id,
+            "nombre": nuevo_usuario.nombre,
+            "email": nuevo_usuario.email,
+            "rol": nuevo_usuario.rol.nombre
+        }

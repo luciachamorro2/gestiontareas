@@ -18,6 +18,14 @@
 
 
   </v-app>
+
+<TablaUsuarios
+  :usuarios="usuarios"
+  @editar="editarUsuario"
+/>
+<FormularioUsers @usuario-agregado="fetchUsers" />
+
+
 </template>
 
 <script setup>
@@ -26,6 +34,18 @@ import Header from "@/components/Header.vue";
 import TablaTareas from "@/components/TablaTareas.vue";
 import TablaUsuarios from "@/components/TablaUsuarios.vue";
 import { getTasks, getUsers } from "@/services/api";
+import FormularioUsers from "@/components/FormularioUsuarios.vue";
+
+const fetchUsers = async () => {
+  try {
+    const usersRes = await getUsers();
+    usuarios.value = usersRes.data;
+  } catch (error) {
+    console.error("Error al cargar usuarios:", error);
+  }
+};
+
+
 
 
 const tasks = ref([]);
