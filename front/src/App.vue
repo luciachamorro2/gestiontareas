@@ -7,8 +7,16 @@
         :tasks="tasks"
         @editar="editarTarea"
       />
+
+       <tabla-usuarios
+          :usuarios="usuarios"
+          @editar="editarUsuario"
+        />
+
     </v-container>
     </v-main>
+
+
   </v-app>
 </template>
 
@@ -16,23 +24,36 @@
 import { ref, onMounted } from "vue";
 import Header from "@/components/Header.vue";
 import TablaTareas from "@/components/TablaTareas.vue";
-import { getTasks } from "@/services/api";
+import TablaUsuarios from "@/components/TablaUsuarios.vue";
+import { getTasks, getUsers } from "@/services/api";
+
 
 const tasks = ref([]);
+const usuarios = ref([]);
 
 const editarTarea = (tarea) => {
   console.log("Editar tarea:", tarea);
   alert(`Editar tarea: ${tarea.titulo}`);
 };
 
-// Cargar tareas desde el backend al montar el componente
+
+// Acción al editar usuario
+const editarUsuario = (usuario) => {
+  console.log("Editar usuario:", usuario);
+  alert(`Editar usuario: ${usuario.nombre}`);
+};
+
 onMounted(async () => {
   try {
-    const response = await getTasks();
-    tasks.value = response.data;
+    const tasksRes = await getTasks();
+    tasks.value = tasksRes.data;
+
+    const usersRes = await getUsers();
+    usuarios.value = usersRes.data;
   } catch (error) {
-    console.error("Error al cargar tareas:", error);
+    console.error("Error al cargar datos:", error);
   }
 });
+
 </script>
 

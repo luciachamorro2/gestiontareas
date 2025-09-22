@@ -1,87 +1,120 @@
 from fastapi import FastAPI
-from models import engine, SessionLocal, users_table, tasks_table
+from datetime import date
+from sqlalchemy.orm import Session
+from database import SessionLocal, engine, Base
+from models import Rol, Usuario, Estado, Tarea
 from fastapi.middleware.cors import CORSMiddleware
-
-
 
 app = FastAPI(title="Gestor de Tareas")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # URL del frontend Vite
+    allow_origins=["http://localhost:5173"],  # puerto de Vite
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+# Crear todas las tablas
+Base.metadata.create_all(bind=engine)
+
 # ---------------------------
-# Inicializar datos de prueba
+# Función para inicializar datos de prueba
 # ---------------------------
 def init_data():
-    with SessionLocal() as session:
+    with Session(engine) as session:
+        # Roles
+        if not session.query(Rol).first():
+            admin = Rol(nombre="Admin")
+            user = Rol(nombre="User")
+            session.add_all([admin, user])
+            session.commit()
+
+        # Estados
+        if not session.query(Estado).first():
+            pendiente = Estado(nombre="Pendiente")
+            completada = Estado(nombre="Completada")
+            boceto = Estado(nombre="Boceto")
+            session.add_all([pendiente, completada, boceto])
+            session.commit()
+
         # Usuarios
-        if not session.execute(users_table.select()).fetchall():
-            session.execute(
-                users_table.insert(),
-                [
-                    {"nombre": "Ana", "correo": "ana@mail.com", "rol": "admin"},
-                    {"nombre": "Luis", "correo": "luis@mail.com", "rol": "user"},
-                ],
-            )
+        if not session.query(Usuario).first():
+            admin_role = session.query(Rol).filter_by(nombre="Admin").first()
+            user_role = session.query(Rol).filter_by(nombre="User").first()
+            u1 = Usuario(nombre="Ana", email="ana@mail.com", rol=admin_role)
+            u2 = Usuario(nombre="Luis", email="luis@mail.com", rol=user_role)
+            session.add_all([u1, u2])
             session.commit()
 
         # Tareas
-        if not session.execute(tasks_table.select()).fetchall():
-            session.execute(
-                tasks_table.insert(),
-                [
-                    {
-                        "titulo": "Enviar informe",
-                        "fecha": "2025-09-20",
-                        "destinatario": "Jefe de proyecto",
-                        "mensaje": "Informe semanal del avance",
-                        "notificaciones": "Email",
-                        "estado": "Pendiente",
-                        "user_id": 1,
-                    },
-                    {
-                        "titulo": "Revisión diseño",
-                        "fecha": "2025-09-21",
-                        "destinatario": "Equipo UI/UX",
-                        "mensaje": "Feedback del mockup",
-                        "notificaciones": "Slack",
-                        "estado": "Completada",
-                        "user_id": 2,
-                    },
-                ],
+        if not session.query(Tarea).first():
+            u1 = session.query(Usuario).filter_by(nombre="Ana").first()
+            u2 = session.query(Usuario).filter_by(nombre="Luis").first()
+            pendiente = session.query(Estado).filter_by(nombre="Pendiente").first()
+            completada = session.query(Estado).filter_by(nombre="Completada").first()
+
+            t1 = Tarea(
+                titulo="Enviar informe",
+                descripcion="Informe semanal del avance",
+                fecha_creacion=date(2025, 9, 20),
+                fecha_limite=date(2025, 9, 21),
+                estado=pendiente,
+                creador=u1,
+                asignado=u2
             )
+            t2 = Tarea(
+                titulo="Revisión diseño",
+                descripcion="Feedback del mockup",
+                fecha_creacion=date(2025, 9, 21),
+                fecha_limite=date(2025, 9, 22),
+                estado=completada,
+                creador=u2,
+                asignado=u1
+            )
+            session.add_all([t1, t2])
             session.commit()
 
-# Inicializar datos al arrancar
+# Inicializar datos
 init_data()
 
 # ---------------------------
 # Endpoints
 # ---------------------------
-@app.get("/tasks")
-def get_tasks():
-    with SessionLocal() as session:
-        rows = session.execute(tasks_table.select()).mappings().all()
-        return list(rows)
 
 @app.get("/users")
 def get_users():
     with SessionLocal() as session:
-        users = session.execute(users_table.select()).mappings().all()
+        usuarios = session.query(Usuario).all()
         result = []
+        for u in usuarios:
+            tareas = [t.titulo for t in session.query(Tarea).filter(Tarea.asignado_id == u.id).all()]
+            result.append({
+                "id": u.id,
+                "nombre": u.nombre,
+                "correo": u.email,
+                "rol": u.rol.nombre,
+                "tareas": tareas
+            })
+        return result
 
-        for u in users:
-            user_dict = dict(u)  # convertir RowMapping a dict
-            tasks = session.execute(
-                tasks_table.select().where(tasks_table.c.user_id == user_dict["id"])
-            ).mappings().all()
-            user_dict["tareas"] = [t["titulo"] for t in tasks]
-            result.append(user_dict)
-
+@app.get("/tasks")
+def get_tasks():
+    with SessionLocal() as session:
+        tareas = session.query(Tarea).all()
+        result = []
+        for t in tareas:
+            estado_nombre = t.estado.nombre if t.estado else None
+            asignado_nombre = t.asignado.nombre if t.asignado else None
+            result.append({
+                "id": t.id,
+                "titulo": t.titulo,
+                "descripcion": t.descripcion,
+                "fecha_creacion": str(t.fecha_creacion),
+                "fecha_limite": str(t.fecha_limite) if t.fecha_limite else None,
+                "estado": estado_nombre,
+                "asignado": asignado_nombre,
+                "creador": t.creador.nombre if t.creador else None
+            })
         return result

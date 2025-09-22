@@ -1,8 +1,14 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: "http://127.0.0.1:8000", // URL de tu backend
-});
+const API_URL = "http://127.0.0.1:8000"; // URL del backend
 
-export const getTasks = () => api.get("/tasks");
-export const getUsers = () => api.get("/users");
+// export function getTasks() {
+//   return axios.get(`${API_URL}/tasks`);
+// }
+
+// export function getUsers() {
+//   return axios.get(`${API_URL}/users`);
+// }
+
+export const getTasks = () => axios.get(`${API_URL}/tasks`);
+export const getUsers = () => axios.get(`${API_URL}/users`);
