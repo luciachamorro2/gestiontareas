@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 
+
+
 class UsuarioCreate(BaseModel):
     nombre: str
     email: str
@@ -110,6 +112,18 @@ def get_users():
                 "tareas": tareas
             })
         return result
+    
+
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int):
+    with SessionLocal() as session:
+        usuario = session.query(Usuario).filter(Usuario.id == user_id).first()
+        if not usuario:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        session.delete(usuario)
+        session.commit()
+        return {"detail": f"Usuario {user_id} eliminado correctamente"}
+
 
 @app.get("/tasks")
 def get_tasks():
