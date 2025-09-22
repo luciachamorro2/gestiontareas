@@ -7,19 +7,9 @@
     <v-data-table
       :headers="headers"
       :items="usuarios"
-      :items-per-page="20"
+      :items-per-page="5"
       class="elevation-1"
     >
-<<<<<<< HEAD
-
- <template v-slot:[`item.acciones`]="{ item }">
-  <v-icon size="small" class="me-2" @click="$emit('editar', item)">
-    mdi-pencil
-  </v-icon>
-<v-icon @click="onEliminarClick(usuario)">mdi-delete</v-icon>    
-</template>
-
-=======
       <!-- Slot de Acciones (editar y eliminar) -->
       <template v-slot:[`item.acciones`]="{ item }">
         <v-icon size="small" class="me-2" @click="$emit('editar', item)">
@@ -29,7 +19,6 @@
           mdi-delete
         </v-icon>
       </template>
->>>>>>> 1ff3d81 (problema editar y eliminar solucionado)
 
       <!-- Slot de Tareas -->
       <template v-slot:[`item.tareas`]="{ item }">
@@ -59,16 +48,7 @@ const props = defineProps({
   },
 });
 
-<<<<<<< HEAD
-const emit = defineEmits(['editar', 'eliminar'])
-
-// Función que llamas al hacer clic en el botón eliminar
-const onEliminarClick = (usuario) => {
-  emit('eliminar', usuario)
-}
-=======
 defineEmits(["editar", "actualizar-lista"]);
->>>>>>> 1ff3d81 (problema editar y eliminar solucionado)
 
 const headers = ref([
   { title: "ID", key: "id" },

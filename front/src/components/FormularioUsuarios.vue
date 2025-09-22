@@ -37,8 +37,6 @@ const rol = ref("");
 
 const roles = ["Admin", "User"]; // Roles de ejemplo
 
-const emit = defineEmits(['usuario-agregado'])
-
 const submitForm = async () => {
   if (!nombre.value || !email.value || !rol.value) return;
 
@@ -54,9 +52,6 @@ const submitForm = async () => {
     nombre.value = "";
     email.value = "";
     rol.value = "";
-
-// Emitir evento al padre para recargar la tabla
-    emit("usuario-agregado");
 
   } catch (error) {
     console.error("Error al agregar usuario:", error);

@@ -1,23 +1,31 @@
 <template>
   <v-app>
     <Header />
-    <v-main> 
-      <v-container>
-        <tabla-tareas
-          :tasks="tasks"
-          @editar="editarTarea"
+        <v-main> 
+    <v-container>
+      <tabla-tareas
+        :tasks="tasks"
+        @editar="editarTarea"
+      />
+
+       <tabla-usuarios
+          :usuarios="usuarios"
+          @editar="editarUsuario"
         />
 
-<TablaUsuarios 
+    </v-container>
+    </v-main>
+
+
+  </v-app>
+
+<TablaUsuarios
   :usuarios="usuarios"
   @editar="editarUsuario"
-  @eliminar="eliminarUsuario"
 />
+<FormularioUsers @usuario-agregado="fetchUsers" />
 
-        <FormularioUsuarios @usuario-agregado="fetchUsers" />
-      </v-container>
-    </v-main>
-  </v-app>
+
 </template>
 
 <script setup>
@@ -25,15 +33,9 @@ import { ref, onMounted } from "vue";
 import Header from "@/components/Header.vue";
 import TablaTareas from "@/components/TablaTareas.vue";
 import TablaUsuarios from "@/components/TablaUsuarios.vue";
-import FormularioUsuarios from "@/components/FormularioUsuarios.vue";
-import { getTasks, getUsers, deleteUser } from "@/services/api";
+import { getTasks, getUsers } from "@/services/api";
+import FormularioUsers from "@/components/FormularioUsuarios.vue";
 
-
-
-const tasks = ref([]);
-const usuarios = ref([]);
-
-// Función para recargar usuarios desde el backend
 const fetchUsers = async () => {
   try {
     const usersRes = await getUsers();
@@ -45,36 +47,33 @@ const fetchUsers = async () => {
 
 
 
-// Cargar datos al montar el componente
-onMounted(async () => {
-  try {
-    const tasksRes = await getTasks();
-    tasks.value = tasksRes.data;
 
-    await fetchUsers(); // Aquí usamos la misma función para usuarios
-  } catch (error) {
-    console.error("Error al cargar datos:", error);
-  }
-});
+const tasks = ref([]);
+const usuarios = ref([]);
 
 const editarTarea = (tarea) => {
   console.log("Editar tarea:", tarea);
   alert(`Editar tarea: ${tarea.titulo}`);
 };
 
+
+// Acción al editar usuario
 const editarUsuario = (usuario) => {
   console.log("Editar usuario:", usuario);
   alert(`Editar usuario: ${usuario.nombre}`);
 };
 
-const eliminarUsuario = async (usuario) => {
+onMounted(async () => {
   try {
-    await deleteUser(usuario.id);
-    alert(`Usuario ${usuario.nombre} eliminado`);
-    await fetchUsers(); // recarga la lista
+    const tasksRes = await getTasks();
+    tasks.value = tasksRes.data;
+
+    const usersRes = await getUsers();
+    usuarios.value = usersRes.data;
   } catch (error) {
-    console.error("Error al eliminar usuario:", error);
+    console.error("Error al cargar datos:", error);
   }
-};
+});
 
 </script>
+

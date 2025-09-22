@@ -25,11 +25,6 @@ app.add_middleware(
 )
 
 
-class UsuarioUpdate(BaseModel):
-    nombre: str
-    email: str
-    rol: str
-
 # Crear todas las tablas
 Base.metadata.create_all(bind=engine)
 
@@ -166,28 +161,3 @@ def create_user(usuario: UsuarioCreate):
             "email": nuevo_usuario.email,
             "rol": nuevo_usuario.rol.nombre
         }
-        
-@app.delete("/users/{user_id}")
-def delete_user(user_id: int):
-    with SessionLocal() as session:
-        user = session.query(Usuario).filter(Usuario.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        session.delete(user)
-        session.commit()
-        return {"message": f"Usuario {user.nombre} eliminado correctamente"}
-
-@app.put("/users/{user_id}")
-def update_user(user_id: int, user_data: UsuarioUpdate):
-    with SessionLocal() as session:
-        user = session.query(Usuario).filter(Usuario.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        
-        # Actualizar campos
-        user.nombre = user_data.nombre
-        user.email = user_data.email
-        user.rol = session.query(Rol).filter(Rol.nombre == user_data.rol).first()
-        
-        session.commit()
-        return {"message": f"Usuario {user.nombre} actualizado correctamente"}
