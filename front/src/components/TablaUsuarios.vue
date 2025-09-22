@@ -10,12 +10,14 @@
       :items-per-page="20"
       class="elevation-1"
     >
-      <!-- Slot de Acciones (ejemplo: editar) -->
-      <template v-slot:[`item.acciones`]="{ item }">
-        <v-icon size="small" class="me-2" @click="$emit('editar', item)">
-          mdi-pencil
-        </v-icon>
-      </template>
+
+ <template v-slot:[`item.acciones`]="{ item }">
+  <v-icon size="small" class="me-2" @click="$emit('editar', item)">
+    mdi-pencil
+  </v-icon>
+<v-icon @click="onEliminarClick(usuario)">mdi-delete</v-icon>    
+</template>
+
 
       <!-- Slot de Tareas -->
       <template v-slot:[`item.tareas`]="{ item }">
@@ -44,7 +46,12 @@ const props = defineProps({
   },
 });
 
-defineEmits(["editar"]);
+const emit = defineEmits(['editar', 'eliminar'])
+
+// Función que llamas al hacer clic en el botón eliminar
+const onEliminarClick = (usuario) => {
+  emit('eliminar', usuario)
+}
 
 const headers = ref([
   { title: "ID", key: "id" },

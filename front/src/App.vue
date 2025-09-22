@@ -8,10 +8,11 @@
           @editar="editarTarea"
         />
 
-        <tabla-usuarios
-          :usuarios="usuarios"
-          @editar="editarUsuario"
-        />
+<TablaUsuarios 
+  :usuarios="usuarios"
+  @editar="editarUsuario"
+  @eliminar="eliminarUsuario"
+/>
 
         <FormularioUsuarios @usuario-agregado="fetchUsers" />
       </v-container>
@@ -25,7 +26,9 @@ import Header from "@/components/Header.vue";
 import TablaTareas from "@/components/TablaTareas.vue";
 import TablaUsuarios from "@/components/TablaUsuarios.vue";
 import FormularioUsuarios from "@/components/FormularioUsuarios.vue";
-import { getTasks, getUsers } from "@/services/api";
+import { getTasks, getUsers, deleteUser } from "@/services/api";
+
+
 
 const tasks = ref([]);
 const usuarios = ref([]);
@@ -39,6 +42,8 @@ const fetchUsers = async () => {
     console.error("Error al cargar usuarios:", error);
   }
 };
+
+
 
 // Cargar datos al montar el componente
 onMounted(async () => {
@@ -61,4 +66,15 @@ const editarUsuario = (usuario) => {
   console.log("Editar usuario:", usuario);
   alert(`Editar usuario: ${usuario.nombre}`);
 };
+
+const eliminarUsuario = async (usuario) => {
+  try {
+    await deleteUser(usuario.id);
+    alert(`Usuario ${usuario.nombre} eliminado`);
+    await fetchUsers(); // recarga la lista
+  } catch (error) {
+    console.error("Error al eliminar usuario:", error);
+  }
+};
+
 </script>
